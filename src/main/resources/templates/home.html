@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSched - Dashboard Terminal</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body class="dashboard-body">
+
+    <div class="app-layout">
+
+        <aside class="app-sidebar">
+            <div class="sidebar-brand">MedSched<span>.</span></div>
+            <div class="sidebar-profile">
+                <div class="avatar-ring">
+                    <div class="avatar-core" id="navAvatar">H</div>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userBadgeName">Loading User...</div>
+                    <div class="profile-role" id="userBadgeRole">Securing Gateway</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-links">
+                <a href="/home" class="nav-item active"><span class="nav-icon">▪</span> Dashboard Home</a>
+                <a href="#" id="navDoctors" onclick="checkAccess('/doctors', ['PATIENT', 'ADMIN'])"
+                    class="nav-item hide-node">
+                    <span class="nav-icon">🩺</span> Clinical Registry
+                </a>
+                <a href="#" id="navBook" onclick="checkAccess('/book', ['PATIENT', 'ADMIN'])"
+                    class="nav-item hide-node">
+                    <span class="nav-icon">🗓️</span> Book Operations
+                </a>
+                <a href="#" id="navHistory" onclick="checkAccess('/appointments', ['PATIENT', 'ADMIN'])"
+                    class="nav-item hide-node">
+                    <span class="nav-icon">📋</span> Case History
+                </a>
+                <a href="#" id="navSchedule" onclick="checkAccess('/doctor-schedule', ['DOCTOR', 'ADMIN'])"
+                    class="nav-item hide-node">
+                    <span class="nav-icon">🕒</span> Clinical Slots
+                </a>
+                <a href="#" id="navAdmin" onclick="checkAccess('/admin', ['ADMIN'])" class="nav-item hide-node">
+                    <span class="nav-icon">🛡️</span> Core System Metrics
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/logout" class="logout-btn">
+                    <span>🔓</span> Secure Logout
+                </a>
+            </div>
+        </aside>
+
+        <main class="app-content">
+            <header class="content-header">
+                <div class="header-breadcrumb">Central Portal / <span id="currentView">Medical Terminal Dashboard</span>
+                </div>
+                <div class="system-status-indicator"><span class="pulse-dot"></span> Clinical Node Secure</div>
+            </header>
+
+            <section class="dashboard-hero">
+                <div class="hero-text-block">
+                    <div class="eyebrow-tag">Enterprise Healthcare Architecture</div>
+                    <h1 id="welcomeGreeting">Welcome to MedSched Portal</h1>
+                    <p class="lede-text">Manage slots, cross-verify clinical schedules, and monitor database operations
+                        seamlessly.</p>
+                </div>
+            </section>
+
+            <section class="dashboard-grid">
+                <a class="dashboard-card hide-node" id="cardDoctors" href="/doctors">
+                    <div class="card-icon-box">🩺</div>
+                    <div class="card-body-panel">
+                        <h2>Search Doctors</h2>
+                        <p>Locate specialists, view clinic timing slots, and analyze roster metrics.</p>
+                    </div>
+                </a>
+                <a class="dashboard-card hide-node" id="cardBook" href="/book">
+                    <div class="card-icon-box">🗓️</div>
+                    <div class="card-body-panel">
+                        <h2>Book Appointment</h2>
+                        <p>Initiate clinical entry pipelines, select timings, and map constraints.</p>
+                    </div>
+                </a>
+                <a class="dashboard-card hide-node" id="cardHistory" href="/appointments">
+                    <div class="card-icon-box">📋</div>
+                    <div class="card-body-panel">
+                        <h2>Appointment History</h2>
+                        <p>Audit past entries, manage cancellations, and track history logs.</p>
+                    </div>
+                </a>
+                <a class="dashboard-card hide-node" id="cardSchedule" href="/doctor-schedule">
+                    <div class="card-icon-box">🕒</div>
+                    <div class="card-body-panel">
+                        <h2>Doctor Schedule</h2>
+                        <p>Analyze clinical operations roster, assigned targets, and pending slots.</p>
+                    </div>
+                </a>
+                <a class="dashboard-card hide-node" id="cardAdmin" href="/admin">
+                    <div class="card-icon-box">🛡️</div>
+                    <div class="card-body-panel">
+                        <h2>Admin Metrics Report</h2>
+                        <p>Complete control parameters over operational data and hospital workflows.</p>
+                    </div>
+                </a>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const user = sessionStorage.getItem('currentUser');
+            const role = sessionStorage.getItem('userRole');
+
+            if (!user || !role) { window.location.href = "/"; return; }
+
+            document.getElementById('userBadgeName').innerText = user;
+            document.getElementById('userBadgeRole').innerText = role + " NODE";
+            document.getElementById('welcomeGreeting').innerText = `Welcome Back, ${user}!`;
+            document.getElementById('navAvatar').innerText = user.charAt(0).toUpperCase();
+
+            if (role === 'PATIENT') {
+                showElements(['navDoctors', 'navBook', 'navHistory', 'cardDoctors', 'cardBook', 'cardHistory']);
+            } else if (role === 'DOCTOR') {
+                showElements(['navSchedule', 'cardSchedule']);
+            } else if (role === 'ADMIN') {
+                showElements(['navDoctors', 'navBook', 'navHistory', 'navSchedule', 'navAdmin', 'cardDoctors', 'cardBook', 'cardHistory', 'cardSchedule', 'cardAdmin']);
+            }
+        };
+
+        function showElements(elementIds) {
+            elementIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.display = (el.classList.contains('nav-item')) ? 'flex' : 'grid';
+                }
+            });
+        }
+
+        function checkAccess(route, allowedRoles) {
+            if (allowedRoles.includes(sessionStorage.getItem('userRole'))) { window.location.href = route; }
+            else { alert("Security Exception: Access Denied!"); }
+        }
+
+        function handleLogout() { sessionStorage.clear(); window.location.href = "/"; }
+    </script>
+</body>
+
+</html>

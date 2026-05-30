@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSched - Initialize Slot Entry</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body class="dashboard-body">
+    <div class="app-layout">
+        <aside class="app-sidebar">
+            <div class="sidebar-brand">MedSched<span>.</span></div>
+            <div class="sidebar-profile">
+                <div class="avatar-ring">
+                    <div class="avatar-core" id="navAvatar">U</div>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userBadgeName">Loading...</div>
+                    <div class="profile-role" id="userBadgeRole">Securing Node...</div>
+                </div>
+            </div>
+            <nav class="sidebar-links">
+                <a href="/home" class="nav-item"><span class="nav-icon">▪</span> Dashboard Home</a>
+                <a href="/doctors" id="navDoctors" class="nav-item hide-node"><span class="nav-icon">🩺</span> Clinical
+                    Registry</a>
+                <a href="/book" id="navBook" class="nav-item active"><span class="nav-icon">🗓️</span> Book
+                    Operations</a>
+                <a href="#" id="navHistory" onclick="checkAccess('/appointments', ['PATIENT', 'ADMIN'])"
+                    class="nav-item hide-node"><span class="nav-icon">📋</span> Case History</a>
+                <a href="#" id="navSchedule" onclick="checkAccess('/doctor-schedule', ['DOCTOR', 'ADMIN'])"
+                    class="nav-item hide-node"><span class="nav-icon">🕒</span> Clinical Slots</a>
+                <a href="#" id="navAdmin" onclick="checkAccess('/admin', ['ADMIN'])" class="nav-item hide-node"><span
+                        class="nav-icon">🛡️</span> Core System Metrics</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/logout" class="logout-btn">
+                    <span>🔓</span> Secure Logout
+                </a>
+            </div>
+        </aside>
+
+        <main class="app-content">
+            <header class="content-header">
+                <div class="header-breadcrumb">Central Portal / <span>Slot Provisioning</span></div>
+                <div class="system-status-indicator"><span class="pulse-dot"></span> Core Pipeline Ready</div>
+            </header>
+
+            <section class="form-container-card">
+                <div class="medical-tag">Appointment Scheduler Node</div>
+                <h2 style="color: #ffffff; margin: 5px 0 25px 0; font-size: 24px;">Provision Allocation Slot</h2>
+
+                <form action="/book" method="post">
+                    <div class="input-container">
+                        <label>Target Practitioner Reference</label>
+                        <input class="login-input" type="text" name="doctorName" th:value="${param.doctorName}" required
+                            placeholder="Select practitioner node from registry...">
+                    </div>
+
+                    <div class="input-container">
+                        <label>Patient Identity Token (Username)</label>
+                        <input id="formPatientUser" class="login-input" type="text" name="patientName" readonly required
+                            style="opacity: 0.6; cursor: not-allowed;">
+                    </div>
+
+                    <div class="form-row-split">
+                        <div class="input-container">
+                            <label>Target Execution Date</label>
+                            <input class="login-input" type="date" name="date" required>
+                        </div>
+                        <div class="input-container">
+                            <label>Target Allocated Time</label>
+                            <input class="login-input" type="time" name="time" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" style="margin-top: 15px;">Commit Appointment Token</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const user = sessionStorage.getItem('currentUser');
+            const role = sessionStorage.getItem('userRole');
+            if (!user || !role) { window.location.href = "/"; return; }
+
+            document.getElementById('userBadgeName').innerText = user;
+            document.getElementById('userBadgeRole').innerText = role + " NODE";
+            document.getElementById('navAvatar').innerText = user.charAt(0).toUpperCase();
+            document.getElementById('formPatientUser').value = user;
+
+            if (role === 'PATIENT') {
+                showElements(['navDoctors', 'navHistory']);
+            } else if (role === 'DOCTOR') {
+                showElements(['navSchedule']);
+            } else if (role === 'ADMIN') {
+                showElements(['navDoctors', 'navHistory', 'navSchedule', 'navAdmin']);
+                // Admin can modify patient name
+                const pInput = document.getElementById('formPatientUser');
+                pInput.removeAttribute('readonly');
+                pInput.style.opacity = '1';
+                pInput.style.cursor = 'text';
+            }
+        };
+
+        function showElements(elementIds) {
+            elementIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'flex';
+            });
+        }
+
+        function checkAccess(route, allowedRoles) {
+            if (allowedRoles.includes(sessionStorage.getItem('userRole'))) { window.location.href = route; }
+            else { alert("Access Denied!"); }
+        }
+
+        function handleLogout() { sessionStorage.clear(); window.location.href = "/"; }
+    </script>
+</body>
+
+</html>

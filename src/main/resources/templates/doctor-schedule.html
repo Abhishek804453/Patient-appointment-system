@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSched - Practitioner Allocation Console</title>
+
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body class="dashboard-body">
+
+    <div class="app-layout">
+
+        <main class="app-content" style="width: 100%;">
+
+            <header class="content-header">
+                <div class="header-breadcrumb">CLINICAL OPERATION SYSTEM // <span>PRACTITIONER CONSOLE</span></div>
+                <div class="system-status-indicator">
+                    <div class="pulse-dot"></div> CONSOLE SECURE
+                </div>
+            </header>
+
+            <div class="dashboard-hero" style="padding: 30px; margin-bottom: 30px;">
+                <div class="eyebrow-tag">Operational Node</div>
+                <h1 id="welcomeHeader">Welcome back, Practitioner</h1>
+                <p class="lede-text">Review and manage your real-time slot requests, emergency allocations, and system
+                    parameters below.</p>
+            </div>
+
+            <div class="medical-tag" style="margin-top: 20px;">Active Roster Workspace</div>
+            <h2 style="color: #ffffff; margin: 5px 0 20px 0; font-size: 20px;">Your Allocation Ledger</h2>
+
+            <div class="table-container">
+                <table class="clinical-table">
+                    <thead class="doctor-schedule-body">
+                        <tr>
+                            <th>Slot Identifier</th>
+                            <th>Patient Token</th>
+                            <th>Time Horizon</th>
+                            <th>Current Status</th>
+                            <th>Override Node</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="slot : ${slots}">
+                            <td style="font-weight: 600;" th:text="${slot.id}">#SLOT-102</td>
+                            <td th:text="${slot.patientName}">John Doe</td>
+                            <td th:text="${slot.timeWindow}">09:30 AM - 10:00 AM</td>
+                            <td>
+                                <span class="status-pill status-assigned" th:text="${slot.status}">Assigned</span>
+                            </td>
+                            <td>
+                                <button class="btn-cancel">Revoke Slot</button>
+                            </td>
+                        </tr>
+                        <tr th:if="${slots == null || slots.isEmpty()}">
+                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                                📅 No slot allocations mapped in the current runtime register.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const user = sessionStorage.getItem('currentUser');
+            const role = sessionStorage.getItem('userRole');
+
+            // Dynamic UI personalization
+            if (user) {
+                document.getElementById('welcomeHeader').innerText = `Welcome back, Dr. ${user}`;
+            }
+
+            // Strict Access Control Guard
+            // Updated Strict Access Control Guard
+            if (!user || (role !== 'DOCTOR' && role !== 'ADMIN')) {
+                alert("🚨 SECURITY VIOLATION: Clinical credentials required to mount this core node!");
+                window.location.href = "/home";
+            }
+        });
+    </script>
+</body>
+
+</html>

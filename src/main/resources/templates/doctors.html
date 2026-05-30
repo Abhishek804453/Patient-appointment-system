@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSched - Clinical Registry</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body class="dashboard-body">
+    <div class="app-layout">
+        <aside class="app-sidebar">
+            <div class="sidebar-brand">MedSched<span>.</span></div>
+            <div class="sidebar-profile">
+                <div class="avatar-ring">
+                    <div class="avatar-core" id="navAvatar">M</div>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userBadgeName">Loading...</div>
+                    <div class="profile-role" id="userBadgeRole">Securing...</div>
+                </div>
+            </div>
+            <nav class="sidebar-links">
+                <a href="/home" class="nav-item"><span class="nav-icon">▪</span> Dashboard Home</a>
+                <a href="/doctors" id="navDoctors" class="nav-item active"><span class="nav-icon">🩺</span> Clinical
+                    Registry</a>
+                <a href="#" id="navBook" onclick="checkAccess('/book', ['PATIENT', 'ADMIN'])"
+                    class="nav-item hide-node"><span class="nav-icon">🗓️</span> Book Operations</a>
+                <a href="#" id="navHistory" onclick="checkAccess('/appointments', ['PATIENT', 'ADMIN'])"
+                    class="nav-item hide-node"><span class="nav-icon">📋</span> Case History</a>
+                <a href="#" id="navSchedule" onclick="checkAccess('/doctor-schedule', ['DOCTOR', 'ADMIN'])"
+                    class="nav-item hide-node"><span class="nav-icon">🕒</span> Clinical Slots</a>
+                <a href="#" id="navAdmin" onclick="checkAccess('/admin', ['ADMIN'])" class="nav-item hide-node"><span
+                        class="nav-icon">🛡️</span> Core System Metrics</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/logout" class="logout-btn">
+                    <span>🔓</span> Secure Logout
+                </a>
+            </div>
+        </aside>
+
+        <main class="app-content">
+            <header class="content-header">
+                <div class="header-breadcrumb">Central Portal / <span>Clinical Registry</span></div>
+                <div class="system-status-indicator"><span class="pulse-dot"></span> Database Online</div>
+            </header>
+
+            <section class="registry-toolbar-panel">
+                <div class="medical-tag">Registry Query Engine</div>
+                <h2 style="color: #ffffff; margin: 5px 0 25px 0; font-size: 24px;">Filter Available Practitioners</h2>
+
+                <form class="search-form-grid" action="/doctors" method="get">
+                    <div class="input-container">
+                        <label for="specialty">Search Specialty Node</label>
+                        <input id="specialty" class="login-input" type="text" name="specialty" th:value="${specialty}"
+                            placeholder="e.g., Cardiology, Neurology...">
+                    </div>
+                    <div class="button-action-group">
+                        <button type="submit" class="btn-submit search-btn">Execute Search</button>
+                        <a class="btn-clear" href="/doctors">Reset Registry</a>
+                    </div>
+                </form>
+            </section>
+
+            <section class="results-container">
+                <div th:if="${message}" class="empty-registry-banner"
+                    style="background: rgba(255, 69, 58, 0.1); border: 1px solid #ff453a; color: #ff453a; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+                    <p th:text="${message}"></p>
+                </div>
+
+                <div class="doctors-grid-layout" th:if="${doctors != null && !doctors.isEmpty()}">
+                    <article class="doctor-profile-card" th:each="doctor : ${doctors}">
+                        <div class="doc-avatar-box">🩺</div>
+                        <div class="doc-meta-details">
+                            <h3 th:text="${doctor.name}">Doctor Name</h3>
+                            <span class="specialty-badge" th:text="${doctor.specialty}">Specialty</span>
+                        </div>
+                        <div class="card-action-anchor">
+                            <a class="btn-action-book" th:href="@{/book(doctorName=${doctor.name})}">Initialize
+                                Booking</a>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        window.onload = function () {
+            const user = sessionStorage.getItem('currentUser');
+            const role = sessionStorage.getItem('userRole');
+            if (!user || !role) { window.location.href = "/"; return; }
+            document.getElementById('userBadgeName').innerText = user;
+            document.getElementById('userBadgeRole').innerText = role + " NODE";
+            document.getElementById('navAvatar').innerText = user.charAt(0).toUpperCase();
+            if (role === 'PATIENT') { showElements(['navBook', 'navHistory']); }
+            else if (role === 'DOCTOR') { showElements(['navSchedule']); }
+            else if (role === 'ADMIN') { showElements(['navBook', 'navHistory', 'navSchedule', 'navAdmin']); }
+        };
+        function showElements(elementIds) {
+            elementIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'flex'; });
+        }
+        function checkAccess(route, allowedRoles) {
+            if (allowedRoles.includes(sessionStorage.getItem('userRole'))) { window.location.href = route; }
+            else { alert("Access Denied!"); }
+        }
+        function handleLogout() { sessionStorage.clear(); window.location.href = "/"; }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSched - Secure Authentication Node</title>
+
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body class="login-body">
+
+    <div class="split-container">
+
+        <div class="branding-side">
+            <div class="branding-content">
+                <div class="branding-title">MedSched<span style="color: var(--teal-primary);">.</span></div>
+                <div class="branding-text">
+                    Enterprise Medical Infrastructure Gateway. Secure allocation nodes, real-time practitioner rosters,
+                    and identity isolation mapping.
+                </div>
+            </div>
+            <div class="live-gateway-clock">
+                SECURITY NETWORK TIMESTAMP: <span>2026-05-29</span>
+            </div>
+        </div>
+
+        <div class="form-side">
+            <div class="login-card">
+                <div class="medical-tag">Access Gateway</div>
+                <h1 class="login-header">Authentication</h1>
+                <div class="login-subtitle">Provide system access node parameters.</div>
+
+                <form id="loginForm" onsubmit="handleRoleBasedLogin(event)">
+
+                    <label th:for="userRole">Portal Access Node</label>
+                    <select id="userRole" class="login-select">
+                        <option value="PATIENT">Patient Portal</option>
+                        <option value="DOCTOR">Doctor's Clinical Console</option>
+                        <option value="ADMIN">Hospital Administration</option>
+                    </select>
+
+                    <label th:for="loginUser">Account Identifier</label>
+                    <input id="loginUser" class="login-input" type="text" th:required="true"
+                        placeholder="Username or employee ID" autocomplete="off">
+
+                    <label th:for="loginPass">Security Passphrase</label>
+                    <input id="loginPass" class="login-input" type="password" th:required="true"
+                        placeholder="••••••••••••">
+
+                    <button type="submit" class="btn-submit">Secure System Access</button>
+                </form>
+
+                <div style="margin-top: 20px; text-align: center; font-size: 13px;">
+                    <a href="#" onclick="triggerResetFlow()"
+                        style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;"
+                        onmouseover="this.style.color='var(--sky-secondary)'"
+                        onmouseout="this.style.color='var(--text-muted)'">
+                        Forgot Passphrase Node?
+                    </a>
+                </div>
+
+                <div class="signup-link">
+                    Not registered? <a href="/signup">Create enterprise account</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function handleRoleBasedLogin(event) {
+            event.preventDefault();
+            const role = document.getElementById('userRole').value;
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value;
+
+            if (pass.length < 4) {
+                alert("Security Alert: Passphrase must be at least 4 characters.");
+                return;
+            }
+
+            sessionStorage.setItem('currentUser', user);
+            sessionStorage.setItem('userRole', role);
+
+            window.location.href = `/auth/session-register?user=${encodeURIComponent(user)}&role=${role}`;
+        }
+
+        function triggerResetFlow() {
+            const selectedRole = document.getElementById('userRole').value;
+            const username = document.getElementById('loginUser').value.trim();
+
+            if (!username) {
+                alert("Security Node Information: Please type your [Account Identifier] username first to unlock override sequence.");
+                return;
+            }
+
+            if (selectedRole === 'ADMIN') {
+                alert(`[ROOT SECURITY PROTOCOL]: Admin account override can be completed by accessing the core database container via terminal query:\n\nUPDATE doctor_db.users SET password = 'NEW_HASH' WHERE username = '${username}';`);
+            } else {
+                alert(`System Alert: A verification master link has been dispatched to the recovery email assigned with [${selectedRole}] node: ${username}. Please verify inside 10 minutes.`);
+            }
+        }
+    </script>
+</body>
+
+</html>

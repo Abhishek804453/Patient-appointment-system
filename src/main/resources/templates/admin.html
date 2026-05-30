@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSched - Administration Core</title>
+
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body>
+
+    <div class="app-layout">
+
+        <main class="app-content" style="width: 100%;">
+
+            <header class="content-header">
+                <div class="header-breadcrumb">SYSTEM LAYER // <span>ADMINISTRATION MODULE</span></div>
+                <div class="system-status-indicator">
+                    <div class="pulse-dot"></div> CORE LIVE
+                </div>
+            </header>
+
+            <section class="admin-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total System Revenue</div>
+                    <div class="stat-value">$142,500<span>.00</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Doctor Nodes</div>
+                    <div class="stat-value" th:text="${doctorCount}">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pending Operational Slots</div>
+                    <div class="stat-value">12</div>
+                </div>
+            </section>
+
+            <div class="split-workspace">
+
+                <section class="workspace-block">
+                    <div class="medical-tag">Provisioning Core</div>
+                    <h2 style="color: #ffffff; margin: 5px 0 25px 0; font-size: 20px;">Onboard New Practitioner</h2>
+
+                    <form action="/admin/add-doctor" method="post" onsubmit="return validateDoctorForm()">
+                        <div class="input-container">
+                            <label>Practitioner Full Name</label>
+                            <input class="login-input" type="text" id="docName" name="name" th:required="true"
+                                minlength="3" maxlength="50" placeholder="e.g., Dr. Jane Doe" autocomplete="off">
+                        </div>
+                        <div class="input-container">
+                            <label>Specialty Node Domain</label>
+                            <input class="login-input" type="text" id="docSpecialty" name="specialty" th:required="true"
+                                minlength="3" maxlength="30" placeholder="e.g., Cardiology" autocomplete="off">
+                        </div>
+                        <button type="submit" class="btn-submit" style="margin-top: 10px;">Provision Node
+                            Parameters</button>
+                    </form>
+                </section>
+
+                <section class="workspace-block">
+                    <div class="medical-tag">Roster Overview</div>
+                    <h2 style="color: #ffffff; margin: 5px 0 25px 0; font-size: 20px;">Registered Practitioner Nodes
+                    </h2>
+
+                    <div th:if="${doctors.isEmpty()}" class="empty-registry-banner">
+                        ⚠️ Database Alert: Zero doctor parameters initialized in core registry memory.
+                    </div>
+
+                    <div class="doctors-grid-layout" th:unless="${doctors.isEmpty()}"
+                        style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
+
+                        <div class="doctor-profile-card" th:each="doctor : ${doctors}" th:if="${doctor.isActive}">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="doc-avatar-box">🩺</div>
+                                <div class="doc-meta-details">
+                                    <h3 style="margin:0; font-size:16px; color:#fff;" th:text="${doctor.name}">Doc</h3>
+                                    <span class="specialty-badge" style="margin-top:4px;"
+                                        th:text="${doctor.specialty}">Spec</span>
+                                </div>
+                            </div>
+                            <div>
+                                <a th:href="@{/admin/remove-doctor/{id}(id=${doctor.id})}" class="btn-cancel"
+                                    style="text-decoration: none;">
+                                    Remove Node
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const user = sessionStorage.getItem('currentUser');
+            const role = sessionStorage.getItem('userRole');
+
+            if (!user || role !== 'ADMIN') {
+                alert("🚨 SECURITY VIOLATION: Hospital Administration credentials required to view this registry block!");
+                window.location.href = "/home";
+            }
+        });
+
+        function validateDoctorForm() {
+            const nameInput = document.getElementById('docName').value.trim();
+            const specialtyInput = document.getElementById('docSpecialty').value.trim();
+
+            if (nameInput.length < 3 || specialtyInput.length < 3) {
+                alert("Limitation Constraint Error: Input field parameters must contain valid characters (Min length: 3).");
+                return false;
+            }
+
+            if (nameInput.toLowerCase() === "admin" || nameInput.toLowerCase() == "null") {
+                alert("Security Exception: System restricted aliases cannot be used as Practitioner names.");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+
+</html>

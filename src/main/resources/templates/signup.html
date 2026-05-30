@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSched - Clinical Registration</title>
+    <link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body class="login-body">
+    <div class="split-container">
+
+        <div class="branding-side">
+            <div class="nav-brand">MedSched<span>.</span></div>
+            <div class="branding-content">
+                <h1 class="branding-title">Join the Digital Health Network</h1>
+                <p class="branding-text">
+                    Create your enterprise identification token to start booking clinical appointments,
+                    configuring schedules, and viewing metric analyses.
+                </p>
+            </div>
+            <div class="live-gateway-clock" id="liveClock">
+                System Live Gateway
+            </div>
+        </div>
+
+        <div class="form-side">
+            <div class="login-card">
+                <div class="medical-tag">Identity Provisioning</div>
+                <h2 class="login-header">Create Account</h2>
+                <p class="login-subtitle">Configure your clinical identity node parameters below.</p>
+
+                <div class="error-banner" id="regError" style="display: none;"></div>
+                <div class="success-banner" id="regSuccess" style="display: none;"></div>
+
+                <form id="registerForm" onsubmit="handleAbsoluteRegister(event)">
+                    <label for="regRole">Portal Access Tier</label>
+                    <select id="regRole" class="login-select">
+                        <option value="PATIENT">Patient Account Node</option>
+                        <option value="DOCTOR">Medical Practitioner Console</option>
+                    </select>
+
+                    <label for="regUser">Choose Unique Account Identifier</label>
+                    <input id="regUser" class="login-input" type="text" required placeholder="e.g., rahul123"
+                        autocomplete="off">
+
+                    <label for="regPass">Generate Security Passphrase</label>
+                    <input id="regPass" class="login-input" type="password" required
+                        placeholder="Create strong security password">
+
+                    <button type="submit" class="btn-submit">Register & Provision Node</button>
+                </form>
+
+                <div class="signup-link">
+                    Already authenticated? <a href="/">Sign In to portal</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = "System Live Gateway | " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function handleAbsoluteRegister(e) {
+            e.preventDefault();
+            const role = document.getElementById('regRole').value;
+            const u = document.getElementById('regUser').value.trim();
+            const p = document.getElementById('regPass').value;
+            const errBox = document.getElementById('regError');
+            const succBox = document.getElementById('regSuccess');
+
+            errBox.style.display = 'none';
+            succBox.style.display = 'none';
+
+            if (u === 'admin' || u === 'doctor1' || localStorage.getItem('user_' + u)) {
+                errBox.innerText = "Conflict Detected: This account identifier is already registered.";
+                errBox.style.display = 'block';
+                return;
+            }
+            localStorage.setItem('user_' + u, p);
+            localStorage.setItem('role_' + u, role);
+
+            succBox.innerText = "Success: Account provisioned. Routing back to central gateway...";
+            succBox.style.display = 'block';
+
+            setTimeout(() => {
+                window.location.href = "/";
+            }, 1500);
+        }
+    </script>
+</body>
+
+</html>
